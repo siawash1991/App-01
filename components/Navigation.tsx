@@ -10,11 +10,13 @@ import {
   FileText,
   User,
   LogOut,
+  Dumbbell,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/dashboard/workout', label: 'Workout', icon: Dumbbell },
   { href: '/dashboard/exercises', label: 'Exercises', icon: Activity },
   { href: '/dashboard/books', label: 'Books', icon: BookOpen },
   { href: '/dashboard/posts', label: 'Posts', icon: FileText },

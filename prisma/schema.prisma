@@ -26,6 +26,7 @@ model User {
   posts         Post[]
   comments      Comment[]
   likes         Like[]
+  workoutPlans  WorkoutPlan[]
 }
 
 // Exercise Tracking
@@ -141,4 +142,63 @@ model Like {
   @@unique([postId, userId])
   @@index([postId])
   @@index([userId])
+}
+
+// ============================================
+// Workout Tracking System (New)
+// ============================================
+
+// Daily Workout Plan
+model WorkoutPlan {
+  id              String    @id @default(cuid())
+  userId          String
+  date            DateTime
+  targetReps      Int       @default(100)
+  timeLimit       Int       @default(60)   // in minutes
+  status          String    @default("pending") // pending, in_progress, completed, skipped
+  startedAt       DateTime?
+  completedAt     DateTime?
+  totalDuration   Int?      // in minutes
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  exercises       DailyExercise[]
+
+  @@unique([userId, date])
+  @@index([userId])
+  @@index([date])
+}
+
+// Daily Exercise (per workout type)
+model DailyExercise {
+  id              String    @id @default(cuid())
+  workoutPlanId   String
+  exerciseType    String    // pushup, pullup, squat, situp
+  targetReps      Int       @default(100)
+  completedReps   Int       @default(0)
+  status          String    @default("pending") // pending, completed, skipped
+  notes           String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  workoutPlan     WorkoutPlan      @relation(fields: [workoutPlanId], references: [id], onDelete: Cascade)
+  sets            ExerciseSet[]
+
+  @@index([workoutPlanId])
+  @@index([exerciseType])
+}
+
+// Individual Exercise Sets
+model ExerciseSet {
+  id                String    @id @default(cuid())
+  dailyExerciseId   String
+  setNumber         Int
+  reps              Int
+  restTime          Int?      // in seconds
+  createdAt         DateTime  @default(now())
+
+  dailyExercise     DailyExercise  @relation(fields: [dailyExerciseId], references: [id], onDelete: Cascade)
+
+  @@index([dailyExerciseId])
 }
