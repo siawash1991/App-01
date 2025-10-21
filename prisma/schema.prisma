@@ -21,11 +21,14 @@ model User {
   updatedAt     DateTime  @updatedAt
 
   // Relations
-  exercises     Exercise[]
-  books         Book[]
-  posts         Post[]
-  comments      Comment[]
-  likes         Like[]
+  exercises          Exercise[]
+  skillContents      SkillContent[]
+  userProgress       UserProgress[]
+  sectionCompletions SectionCompletion[]
+  contentReviews     ContentReview[]
+  posts              Post[]
+  comments           Comment[]
+  likes              Like[]
 }
 
 // Exercise Tracking
@@ -51,45 +54,122 @@ model Exercise {
   @@index([userId])
 }
 
-// Book Reading Tracking
-model Book {
-  id            String    @id @default(cuid())
-  userId        String
-  title         String
-  author        String
-  totalPages    Int
-  currentPage   Int       @default(0)
-  status        String    @default("reading") // reading, completed, paused
-  coverImage    String?
-  genre         String?
-  notes         String?
-  rating        Int?      // 1-5 stars
-  startedAt     DateTime  @default(now())
-  completedAt   DateTime?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+// Skill Development Platform Models
 
-  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  readingSessions ReadingSession[]
+// Skill Content (Books, Podcasts, Documentaries)
+model SkillContent {
+  id                  String              @id @default(cuid())
+  userId              String?
+  category            String              // book, podcast, documentary
+  title               String
+  author              String?
+  description         String?
+  coverImage          String?
+  tags                String?             // JSON array
+  difficulty          String              @default("intermediate") // beginner, intermediate, advanced
+  estimatedDuration   Int?                // in minutes
+  audioSummaryUrl     String?
+  videoClipUrl        String?
+  youtubeEmbedId      String?
+  externalLink        String?
+  isSystemContent     Boolean             @default(false)
+  isPinned            Boolean             @default(false)
+  rating              Float?
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+
+  user                User?               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sections            ContentSection[]
+  progress            UserProgress[]
+  reviews             ContentReview[]
 
   @@index([userId])
+  @@index([category])
+  @@index([isSystemContent])
 }
 
-// Reading Sessions for detailed tracking
-model ReadingSession {
-  id            String    @id @default(cuid())
-  bookId        String
-  pagesRead     Int
-  startPage     Int
-  endPage       Int
-  duration      Int?      // in minutes
-  notes         String?
-  sessionDate   DateTime  @default(now())
-  createdAt     DateTime  @default(now())
+// Content Sections (Book Chapters, Podcast Episodes, etc.)
+model ContentSection {
+  id                  String              @id @default(cuid())
+  contentId           String
+  sectionNumber       Int
+  title               String
+  content             String?             // markdown supported
+  duration            Int?                // in minutes
+  audioUrl            String?
+  videoUrl            String?
+  keyPoints           String?             // JSON array
+  createdAt           DateTime            @default(now())
 
-  book          Book      @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  skillContent        SkillContent        @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  completions         SectionCompletion[]
 
-  @@index([bookId])
+  @@index([contentId])
+  @@index([sectionNumber])
+}
+
+// User Progress Tracking
+model UserProgress {
+  id                  String              @id @default(cuid())
+  userId              String
+  contentId           String
+  status              String              @default("not_started") // not_started, in_progress, completed, paused
+  progressPercentage  Int                 @default(0)
+  currentSection      Int                 @default(1)
+  totalTimeSpent      Int                 @default(0) // in minutes
+  startedAt           DateTime?
+  completedAt         DateTime?
+  lastAccessedAt      DateTime            @default(now())
+  notes               String?
+  rating              Int?                // 1-5 stars
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+
+  user                User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content             SkillContent        @relation(fields: [contentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, contentId])
+  @@index([userId])
+  @@index([contentId])
+  @@index([status])
+}
+
+// Section Completion Tracking
+model SectionCompletion {
+  id                  String              @id @default(cuid())
+  userId              String
+  sectionId           String
+  completed           Boolean             @default(false)
+  timeSpent           Int?                // in minutes
+  notes               String?
+  completedAt         DateTime?
+  createdAt           DateTime            @default(now())
+
+  user                User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  section             ContentSection      @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, sectionId])
+  @@index([userId])
+  @@index([sectionId])
+}
+
+// Content Reviews and Ratings
+model ContentReview {
+  id                  String              @id @default(cuid())
+  userId              String
+  contentId           String
+  rating              Int                 // 1-5 stars
+  review              String?
+  isRecommended       Boolean             @default(true)
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+
+  user                User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content             SkillContent        @relation(fields: [contentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, contentId])
+  @@index([contentId])
+  @@index([rating])
 }
 
 // Progress Posts (Social Feed)
