@@ -2,8 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowRight, Clock, BarChart, Star, Play, Volume2, BookOpen, CheckCircle } from 'lucide-react';
+import { ArrowRight, Clock, BarChart, Star, BookOpen, CheckCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import AudioPlayer from '@/components/skill/AudioPlayer';
+import YouTubePlayer from '@/components/skill/YouTubePlayer';
+import { useToast } from '@/components/ui/ToastContainer';
 
 interface ContentDetail {
   content: {
@@ -46,9 +49,11 @@ interface ContentDetail {
 export default function BookDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const { showToast } = useToast();
   const [data, setData] = useState<ContentDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeSection, setActiveSection] = useState<string | null>(null);
+  const [showAudioPlayer, setShowAudioPlayer] = useState(false);
 
   useEffect(() => {
     if (params.id) {
@@ -73,15 +78,22 @@ export default function BookDetailPage() {
     try {
       if (!data?.userProgress) {
         // Create progress
-        await fetch('/api/skill/progress', {
+        const res = await fetch('/api/skill/progress', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ contentId: params.id }),
         });
-        fetchContentDetail();
+
+        if (res.ok) {
+          showToast('success', 'شروع خواندن با موفقیت انجام شد!');
+          fetchContentDetail();
+        } else {
+          showToast('error', 'خطا در شروع خواندن');
+        }
       }
     } catch (error) {
       console.error('Error starting reading:', error);
+      showToast('error', 'خطا در ارتباط با سرور');
     }
   };
 
@@ -136,22 +148,25 @@ export default function BookDetailPage() {
               )}
             </div>
 
-            {/* Media Buttons */}
-            {(content.audioSummaryUrl || content.videoClipUrl) && (
-              <div className="mt-4 space-y-2">
-                {content.audioSummaryUrl && (
-                  <button className="w-full flex items-center justify-center gap-2 bg-purple-600 text-white py-3 rounded-lg hover:bg-purple-700 transition">
-                    <Volume2 className="w-5 h-5" />
-                    <span>پخش خلاصه صوتی</span>
-                  </button>
-                )}
-                {content.videoClipUrl && (
-                  <button className="w-full flex items-center justify-center gap-2 bg-red-600 text-white py-3 rounded-lg hover:bg-red-700 transition">
-                    <Play className="w-5 h-5" />
-                    <span>تماشای کلیپ</span>
-                  </button>
-                )}
+            {/* Audio Player */}
+            {content.audioSummaryUrl && showAudioPlayer && (
+              <div className="mt-4">
+                <AudioPlayer
+                  audioUrl={content.audioSummaryUrl}
+                  title={`${content.title} - خلاصه صوتی`}
+                  onClose={() => setShowAudioPlayer(false)}
+                />
               </div>
+            )}
+
+            {/* Show Audio Button */}
+            {content.audioSummaryUrl && !showAudioPlayer && (
+              <button
+                onClick={() => setShowAudioPlayer(true)}
+                className="w-full mt-4 flex items-center justify-center gap-2 bg-purple-600 text-white py-3 rounded-lg hover:bg-purple-700 transition"
+              >
+                <span>پخش خلاصه صوتی</span>
+              </button>
             )}
           </div>
         </div>
@@ -268,6 +283,21 @@ export default function BookDetailPage() {
                 <div className="prose max-w-none text-gray-700 whitespace-pre-wrap">
                   {content.description}
                 </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* YouTube Player */}
+          {content.youtubeEmbedId && (
+            <Card>
+              <CardHeader>
+                <CardTitle>کلیپ ویدیو</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <YouTubePlayer
+                  videoId={content.youtubeEmbedId}
+                  title={content.title}
+                />
               </CardContent>
             </Card>
           )}

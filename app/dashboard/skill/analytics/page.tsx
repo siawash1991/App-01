@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { TrendingUp, BookOpen, Clock, CheckCircle, Flame, Star } from 'lucide-react';
+import ProgressCharts from '@/components/skill/ProgressCharts';
 
 interface Analytics {
   overview: {
@@ -277,6 +278,13 @@ export default function AnalyticsPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Charts */}
+      <ProgressCharts
+        categoryData={analytics.byCategory}
+        timelineData={analytics.timeline}
+        topicsData={analytics.topTopics}
+      />
 
       {/* Recent Activity */}
       {analytics.recentActivity.length > 0 && (
