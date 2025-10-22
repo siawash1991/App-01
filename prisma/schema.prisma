@@ -17,6 +17,7 @@ model User {
   password      String
   bio           String?
   avatar        String?
+  language      String    @default("fa") // User's preferred language (fa/en)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
@@ -55,8 +56,6 @@ model Exercise {
 model Book {
   id            String    @id @default(cuid())
   userId        String
-  title         String
-  author        String
   totalPages    Int
   currentPage   Int       @default(0)
   status        String    @default("reading") // reading, completed, paused
@@ -70,9 +69,28 @@ model Book {
   updatedAt     DateTime  @updatedAt
 
   user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  translations  BookTranslation[]
   readingSessions ReadingSession[]
 
   @@index([userId])
+}
+
+// Book Translations for multilingual support
+model BookTranslation {
+  id            String    @id @default(cuid())
+  bookId        String
+  language      String    // 'fa' or 'en'
+  title         String
+  author        String
+  description   String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  book          Book      @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@unique([bookId, language])
+  @@index([bookId])
+  @@index([language])
 }
 
 // Reading Sessions for detailed tracking
@@ -96,6 +114,7 @@ model ReadingSession {
 model Post {
   id            String    @id @default(cuid())
   userId        String
+  language      String    @default("fa") // Language of the post
   title         String
   content       String
   category      String    // exercise, book, general, achievement
@@ -110,6 +129,7 @@ model Post {
 
   @@index([userId])
   @@index([createdAt])
+  @@index([language])
 }
 
 // Comments on Posts
