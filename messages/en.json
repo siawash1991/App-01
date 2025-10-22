@@ -268,5 +268,30 @@
     "min_length": "Must be at least {count} characters",
     "max_length": "Must be no more than {count} characters",
     "passwords_must_match": "Passwords must match"
+  },
+  "home": {
+    "hero_title": "Track Your Progress, Achieve Your Goals",
+    "hero_subtitle": "A comprehensive productivity app for tracking exercises, books, and personal growth",
+    "get_started": "Get Started",
+    "sign_in": "Sign In",
+    "features": {
+      "exercise_title": "Exercise Tracking",
+      "exercise_desc": "Log your workouts, track calories, and monitor your fitness progress",
+      "reading_title": "Reading Progress",
+      "reading_desc": "Track books, log reading sessions, and achieve your reading goals",
+      "posts_title": "Progress Posts",
+      "posts_desc": "Share your achievements and inspire others with your journey",
+      "profile_title": "Personal Profile",
+      "profile_desc": "Showcase your stats, achievements, and connect with others"
+    },
+    "why_choose": {
+      "title": "Why Choose Our App?",
+      "free_title": "100%",
+      "free_desc": "Free & Open Source",
+      "available_title": "24/7",
+      "available_desc": "Track Anytime, Anywhere",
+      "unlimited_title": "∞",
+      "unlimited_desc": "Unlimited Tracking"
+    }
   }
 }
